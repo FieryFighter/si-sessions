@@ -101,7 +101,7 @@
         </a>
     </div>
 
-    <script>
+   <script>
         // Helper function to read parameters from the browser link URL
         function getQueryParam(param) {
             const urlParams = new URLSearchParams(window.location.search);
@@ -113,29 +113,30 @@
         const displayDate = getQueryParam('displayDate') || "Check calendar for time details";
         const driveId = getQueryParam('driveId');
         
-        // Google/Outlook require exact ISO time formatting (YYYYMMDDTHHMMSSZ)
-        const startIso = getQueryParam('startIso') || "20260715T140000Z";
-        const endIso = getQueryParam('endIso') || "20260715T150000Z";
-
         // 2. Update the web page text dynamically
         document.getElementById('event-title').innerText = decodeURIComponent(title);
         document.getElementById('event-time').innerText = decodeURIComponent(displayDate);
 
-        // 3. Set up the Apple / Universal Download button
+        // 3. Convert Google Drive link into a universal webcal link
         if (driveId) {
-            document.getElementById('ics-link').href = `https://drive.google.com/uc?export=download&id=${driveId}`;
+            // This is the clean direct download link format
+            const rawDownloadUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
+            
+            // For Apple / Universal: Swap "https" for "webcal" to force iOS to launch the Calendar app
+            const webcalUrl = `webcal://drive.google.com/uc?export=download&id=${driveId}`;
+            
+            // Standard web calendar injection for Google / Outlook web users
+            const cleanTitle = encodeURIComponent(title);
+            const googleUrl = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(rawDownloadUrl)}`;
+            const outlookUrl = `https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addsubscription&url=${encodeURIComponent(rawDownloadUrl)}&name=${cleanTitle}`;
+
+            // Assign links to buttons
+            document.getElementById('ics-link').href = webcalUrl;
+            document.getElementById('google-link').href = googleUrl;
+            document.getElementById('outlook-link').href = outlookUrl;
         } else {
-            document.getElementById('ics-link').style.display = 'none'; // Hide if no file ID provided
+            document.querySelector('.card').innerText = "Error: No event file ID provided.";
         }
-
-        // 4. Construct direct cloud injection links for Google and Outlook
-        const cleanTitle = encodeURIComponent(title);
-        
-        const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${cleanTitle}&dates=${startIso}/${endIso}`;
-        const outlookUrl = `https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&subject=${cleanTitle}&startdt=${startIso}&enddt=${endIso}`;
-
-        document.getElementById('google-link').href = googleUrl;
-        document.getElementById('outlook-link').href = outlookUrl;
     </script>
 
 </body>
