@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Event to Calendar</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .event-details {
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #64748b;
+            white-space: pre-line;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, filter 0.2s;
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+
+        .btn:active { transform: scale(0.98); }
+        .btn-google { background-color: #ffffff; color: #3c4043; border: 1px solid #dadce0; }
+        .btn-outlook { background-color: #0078d4; color: #ffffff; }
+        .btn-apple { background-color: #000000; color: #ffffff; }
+        .btn-google:hover, .btn-outlook:hover, .btn-apple:hover { filter: brightness(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1 id="event-title">Event Invitation</h1>
+        <div class="event-details" id="event-time">Loading event details...</div>
+        
+        <p style="margin-bottom: 20px; font-size: 15px; color: #475569;">Select your calendar preference:</p>
+
+        <!-- Google Calendar Web Link -->
+        <a id="google-link" href="#" target="_blank" class="btn btn-google">
+            <img src="https://fonts.gstatic.com/s/i/productlogos/calendar_2020q4/v13/web-64dp/logo_calendar_2020q4_color_1x_web_64dp.png" width="20" alt="Google">
+            Google Calendar
+        </a>
+
+        <!-- Outlook Web Link -->
+        <a id="outlook-link" href="#" target="_blank" class="btn btn-outlook">
+            Outlook Calendar
+        </a>
+
+        <!-- Universal ICS File Download (Best for Apple) -->
+        <a id="ics-link" href="#" class="btn btn-apple">
+            Apple / Universal (.ics)
+        </a>
+    </div>
+
+    <script>
+        // Helper function to read parameters from the browser link URL
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // 1. Extract data from the URL
+        const title = getQueryParam('title') || "Special Event";
+        const displayDate = getQueryParam('displayDate') || "Check calendar for time details";
+        const driveId = getQueryParam('driveId');
+        
+        // Google/Outlook require exact ISO time formatting (YYYYMMDDTHHMMSSZ)
+        const startIso = getQueryParam('startIso') || "20260715T140000Z";
+        const endIso = getQueryParam('endIso') || "20260715T150000Z";
+
+        // 2. Update the web page text dynamically
+        document.getElementById('event-title').innerText = decodeURIComponent(title);
+        document.getElementById('event-time').innerText = decodeURIComponent(displayDate);
+
+        // 3. Set up the Apple / Universal Download button
+        if (driveId) {
+            document.getElementById('ics-link').href = `https://drive.google.com/uc?export=download&id=${driveId}`;
+        } else {
+            document.getElementById('ics-link').style.display = 'none'; // Hide if no file ID provided
+        }
+
+        // 4. Construct direct cloud injection links for Google and Outlook
+        const cleanTitle = encodeURIComponent(title);
+        
+        const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${cleanTitle}&dates=${startIso}/${endIso}`;
+        const outlookUrl = `https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&subject=${cleanTitle}&startdt=${startIso}&enddt=${endIso}`;
+
+        document.getElementById('google-link').href = googleUrl;
+        document.getElementById('outlook-link').href = outlookUrl;
+    </script>
+
+</body>
+</html>
